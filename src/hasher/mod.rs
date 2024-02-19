@@ -10,6 +10,7 @@ use crate::constants::{winternitz_chain::*, MAX_HASH_SIZE};
 
 pub mod sha256;
 pub mod shake256;
+pub mod poseidon256;
 
 pub struct HashChainData {
     data: ArrayVec<[u8; ITER_MAX_LEN]>,

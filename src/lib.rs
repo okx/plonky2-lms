@@ -102,6 +102,7 @@ pub use crate::hss::reference_impl_private_key::Seed;
 pub use crate::hasher::{
     sha256::{Sha256_128, Sha256_192, Sha256_256},
     shake256::{Shake256_128, Shake256_192, Shake256_256},
+    poseidon256::Poseidon256_256,
     HashChain, HashChainData,
 };
 
@@ -186,7 +187,8 @@ impl<'a> signature::Signature for VerifierSignature<'a> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{keygen, HssParameter, LmotsAlgorithm, LmsAlgorithm, Sha256_256};
+    use crate::hasher::poseidon256::Poseidon256_256;
+    use crate::{keygen, HssParameter, LmotsAlgorithm, LmsAlgorithm};
     use crate::{
         signature::{SignerMut, Verifier},
         SigningKey, VerifierSignature, VerifyingKey,
@@ -196,7 +198,7 @@ mod tests {
 
     #[test]
     fn get_signing_and_verifying_key() {
-        type H = Sha256_256;
+        type H = Poseidon256_256;
         let seed = gen_random_seed::<H>();
 
         let (signing_key, verifying_key) = keygen::<H>(
@@ -218,7 +220,7 @@ mod tests {
         let message = [
             32u8, 48, 2, 1, 48, 58, 20, 57, 9, 83, 99, 255, 0, 34, 2, 1, 0,
         ];
-        type H = Sha256_256;
+        type H = Poseidon256_256;
         let seed = gen_random_seed::<H>();
 
         let (mut signing_key, verifying_key) = keygen::<H>(
