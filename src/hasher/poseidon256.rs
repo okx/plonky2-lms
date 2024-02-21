@@ -1,5 +1,6 @@
 use core::convert::TryFrom;
 extern crate alloc;
+use alloc::vec;
 use alloc::vec::Vec;
 use digest::generic_array::GenericArray;
 use tinyvec::ArrayVec;
@@ -42,7 +43,7 @@ impl OutputSizeUser for Poseidon256_256 {
 }
 impl FixedOutput for Poseidon256_256 {
     fn finalize_into(self, out: &mut Output<Self>) {
-        let f_message = convert_u8_to_f(&self.message.as_slice());
+        let f_message = convert_8u8_to_f(&self.message.as_slice());
         let hashout = PoseidonHash::hash_no_pad(f_message.as_slice());
         // convert HashOut to GenericArray
         *out = GenericArray::clone_from_slice(hashout.to_bytes().as_slice());
@@ -55,7 +56,7 @@ impl Reset for Poseidon256_256 {
 }
 impl FixedOutputReset for Poseidon256_256 {
     fn finalize_into_reset(&mut self, out: &mut Output<Self>) {
-        let f_message = convert_u8_to_f(&self.message.as_slice());
+        let f_message = convert_8u8_to_f(&self.message.as_slice());
         let hashout = PoseidonHash::hash_no_pad(f_message.as_slice());
         // convert HashOut to GenericArray
         *out = GenericArray::clone_from_slice(hashout.to_bytes().as_slice());
@@ -64,19 +65,34 @@ impl FixedOutputReset for Poseidon256_256 {
 }
 impl Update for Poseidon256_256 {
     fn update(&mut self, data: &[u8]) {
-        self.message.extend_from_slice(data);
+        // if data.len % 8 ! = 0
+        // Fill the rest with 0
+        // So that each 8 bytes can be converted to 1 Goldilocks F
+        let data = fill_zero_to_u8(data);
+        self.message.extend_from_slice(data.as_slice());
     }
 }
 
-fn convert_u8_to_f(data: &[u8]) -> Vec<F> {
-    data.chunks(8)
+pub fn fill_zero_to_u8(data: &[u8]) -> Vec<u8> {
+    let mut data = data.to_vec();
+    if data.len() % 8 != 0 {
+        data.extend(vec![0u8; 8 - data.len() % 8]);
+    }
+    data
+}
+
+/// Convert 8u8 to F
+/// data should be multiple of 8
+pub fn convert_8u8_to_f(data: &[u8]) -> Vec<F> {
+    data.chunks_exact(8)
         .map(|chunk| {
             let mut bytes = [0u8; 8];
-            bytes[..chunk.len()].copy_from_slice(chunk);
+            bytes[..8].copy_from_slice(chunk);
             F::from_canonical_u64(u64::from_le_bytes(bytes))
         })
         .collect::<Vec<F>>()
 }
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -89,13 +105,31 @@ mod tests {
     };
 
     #[test]
-    fn test_hash() {
+    fn test_single_hash() {
         let mut hash_chain: Poseidon256_256 = Default::default();
         let message = b"hello world";
         hash_chain.update(message);
         let left = hash_chain.finalize().to_vec();
-        let f_message = convert_u8_to_f(message);
+        let f_message = convert_8u8_to_f(fill_zero_to_u8(message).as_slice());
         let right = PoseidonHash::hash_no_pad(f_message.as_slice()).to_bytes();
+        assert_eq!(left, right);
+        assert_ne!(left, vec![0u8; 32]);
+    }
+
+    #[test]
+    fn test_multi_hash() {
+        let mut hash_chain: Poseidon256_256 = Default::default();
+        let message: [u64; 4] = [1, 234, 5678, 12345678];
+        let f_message = message.map(|m| F::from_canonical_u64(m));
+        message.iter().for_each(|m| {
+            hash_chain.update(&m.to_le_bytes());
+        });
+        assert_eq!(
+            convert_8u8_to_f(hash_chain.message.as_slice()),
+            f_message.to_vec()
+        );
+        let left = hash_chain.finalize().to_vec();
+        let right = PoseidonHash::hash_no_pad(&f_message).to_bytes();
         assert_eq!(left, right);
         assert_ne!(left, vec![0u8; 32]);
     }
