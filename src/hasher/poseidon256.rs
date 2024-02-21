@@ -68,15 +68,17 @@ impl Update for Poseidon256_256 {
         // if data.len % 8 ! = 0
         // Fill the rest with 0
         // So that each 8 bytes can be converted to 1 Goldilocks F
-        let data = fill_zero_to_u8(data);
+        let data = fill_leading_zero_to_u8(data);
         self.message.extend_from_slice(data.as_slice());
     }
 }
 
-pub fn fill_zero_to_u8(data: &[u8]) -> Vec<u8> {
+/// Big endian, fill 0 to the left
+pub fn fill_leading_zero_to_u8(data: &[u8]) -> Vec<u8> {
     let mut data = data.to_vec();
     if data.len() % 8 != 0 {
-        data.extend(vec![0u8; 8 - data.len() % 8]);
+        let last = data.len() - data.len() % 8;
+        data.splice(last..last, vec![0u8; 8 - data.len() % 8]);
     }
     data
 }
@@ -88,7 +90,7 @@ pub fn convert_8u8_to_f(data: &[u8]) -> Vec<F> {
         .map(|chunk| {
             let mut bytes = [0u8; 8];
             bytes[..8].copy_from_slice(chunk);
-            F::from_canonical_u64(u64::from_le_bytes(bytes))
+            F::from_canonical_u64(u64::from_be_bytes(bytes))
         })
         .collect::<Vec<F>>()
 }
@@ -110,7 +112,7 @@ mod tests {
         let message = b"hello world";
         hash_chain.update(message);
         let left = hash_chain.finalize().to_vec();
-        let f_message = convert_8u8_to_f(fill_zero_to_u8(message).as_slice());
+        let f_message = convert_8u8_to_f(&fill_leading_zero_to_u8(message).as_slice());
         let right = PoseidonHash::hash_no_pad(f_message.as_slice()).to_bytes();
         assert_eq!(left, right);
         assert_ne!(left, vec![0u8; 32]);
@@ -122,7 +124,7 @@ mod tests {
         let message: [u64; 4] = [1, 234, 5678, 12345678];
         let f_message = message.map(|m| F::from_canonical_u64(m));
         message.iter().for_each(|m| {
-            hash_chain.update(&m.to_le_bytes());
+            hash_chain.update(&m.to_be_bytes());
         });
         assert_eq!(
             convert_8u8_to_f(hash_chain.message.as_slice()),

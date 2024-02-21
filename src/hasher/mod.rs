@@ -57,8 +57,8 @@ pub trait HashChain:
         for j in from..to {
             self.update(hc_data.lms_tree_identifier);
             self.update(hc_data.lms_leaf_identifier);
-            self.update(&hash_chain_id.to_le_bytes());
-            self.update(&j.to_le_bytes());
+            self.update(&hash_chain_id.to_be_bytes());
+            self.update(&j.to_be_bytes());
             self.update(tmp.as_slice());
             tmp = self.finalize_reset();
         }
