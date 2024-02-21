@@ -344,8 +344,8 @@ mod tests {
             shake256::{Shake256_128, Shake256_192, Shake256_256},
         },
         lm_ots::{
-            parameters::LmotsAlgorithm, signing::InMemoryLmotsSignature, signing::LmotsSignature,
-        },
+            parameters::LmotsAlgorithm, signing::{InMemoryLmotsSignature, LmotsSignature},
+        }, Poseidon256_256,
     };
 
     macro_rules! generate_test {
@@ -403,4 +403,6 @@ mod tests {
     generate_test!(lmots_shake256_n24_binary_representation_test, Shake256_192);
 
     generate_test!(lmots_shake256_n16_binary_representation_test, Shake256_256);
+
+    generate_test!(lmots_poseidon256_n32_binary_representation_test, Poseidon256_256);
 }

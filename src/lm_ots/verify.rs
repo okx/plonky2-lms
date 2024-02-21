@@ -152,6 +152,7 @@ mod tests {
         signing::{InMemoryLmotsSignature, LmotsSignature},
         verify::verify_signature_inmemory,
     };
+    use crate::Poseidon256_256;
 
     use rand::{rngs::OsRng, RngCore};
 
@@ -262,5 +263,29 @@ mod tests {
         lmots_sha256_n16_w8_verify_test,
         parameters::LmotsAlgorithm::LmotsW8,
         Sha256_128
+    );
+
+    generate_test!(
+        lmots_poseidon256_n32_w1_verify_test,
+        parameters::LmotsAlgorithm::LmotsW1,
+        Poseidon256_256
+    );
+
+    generate_test!(
+        lmots_poseidon256_n32_w2_verify_test,
+        parameters::LmotsAlgorithm::LmotsW2,
+        Poseidon256_256
+    );
+
+    generate_test!(
+        lmots_poseidon256_n32_w4_verify_test,
+        parameters::LmotsAlgorithm::LmotsW4,
+        Poseidon256_256
+    );
+
+    generate_test!(
+        lmots_poseidon256_n32_w8_verify_test,
+        parameters::LmotsAlgorithm::LmotsW8,
+        Poseidon256_256
     );
 }
