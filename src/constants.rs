@@ -148,21 +148,21 @@ pub const DAUX_D: usize = 20;
 pub const DAUX_PREFIX_LEN: usize = 22; /* Not counting the seed value */
 pub const D_DAUX: u16 = 0xfdfd;
 
-pub mod winternitz_chain {
-    use super::MAX_HASH_SIZE;
+// pub mod winternitz_chain {
+//     use super::MAX_HASH_SIZE;
 
-    pub const ITER_I: usize = 0;
-    pub const ITER_Q: usize = 16;
-    pub const ITER_K: usize = 20;
-    pub const ITER_J: usize = 22;
-    pub const ITER_PREV: usize = 23;
+//     pub const ITER_I: usize = 0;
+//     pub const ITER_Q: usize = 16;
+//     pub const ITER_K: usize = 20;
+//     pub const ITER_J: usize = 22;
+//     pub const ITER_PREV: usize = 23;
 
-    pub const fn iter_len(hash_len: usize) -> usize {
-        ITER_PREV + hash_len
-    }
+//     pub const fn iter_len(hash_len: usize) -> usize {
+//         ITER_PREV + hash_len
+//     }
 
-    pub const ITER_MAX_LEN: usize = iter_len(MAX_HASH_SIZE);
-}
+//     pub const ITER_MAX_LEN: usize = iter_len(MAX_HASH_SIZE);
+// }
 
 #[cfg(test)]
 mod tests {
