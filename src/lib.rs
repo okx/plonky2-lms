@@ -100,9 +100,9 @@ pub use crate::constants::MAX_HASH_SIZE;
 pub use crate::hss::reference_impl_private_key::Seed;
 
 pub use crate::hasher::{
+    poseidon256::Poseidon256_256,
     sha256::{Sha256_128, Sha256_192, Sha256_256},
     shake256::{Shake256_128, Shake256_192, Shake256_256},
-    poseidon256::Poseidon256_256,
     HashChain, HashChainData,
 };
 
@@ -115,7 +115,11 @@ pub use crate::hss::hss_sign as sign;
 #[cfg(feature = "fast_verify")]
 pub use crate::hss::hss_sign_mut as sign_mut;
 pub use crate::hss::hss_verify as verify;
+pub use crate::hss::{definitions::InMemoryHssPublicKey, signing::InMemoryHssSignature};
 pub use crate::hss::{SigningKey, VerifyingKey};
+pub use crate::lm_ots::verify::generate_public_key_candiate as lmots_generate_public_key_candidate;
+pub use crate::lms::definitions::InMemoryLmsPublicKey;
+pub use crate::lms::signing::InMemoryLmsSignature;
 
 use core::convert::TryFrom;
 use signature::Error;
