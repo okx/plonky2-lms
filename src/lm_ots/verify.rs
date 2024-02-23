@@ -88,13 +88,13 @@ pub fn verify_signature_inmemory<H: HashChain>(
     public_key_candidate == public_key.key
 }
 
-pub fn get_message_hash_with_checksum<H: HashChain>(
+pub fn get_message_hash<H: HashChain>(
     lmots_parameter: &LmotsParameter<H>,
     lms_tree_identifier: &[u8],
     lms_leaf_identifier: &[u8],
     signature_randomizer: &[u8],
     message: &[u8],
-) -> ArrayVec<[u8; MAX_HASH_SIZE + 2]> {
+) -> ArrayVec<[u8; MAX_HASH_SIZE]> {
     let mut hasher = lmots_parameter.get_hasher();
 
     hasher.update(lms_tree_identifier);
@@ -103,8 +103,7 @@ pub fn get_message_hash_with_checksum<H: HashChain>(
     hasher.update(signature_randomizer);
     hasher.update(message);
 
-    let message_hash = hasher.finalize_reset();
-    lmots_parameter.append_checksum_to(message_hash.as_slice())
+    hasher.finalize_reset()
 }
 
 pub fn generate_public_key_candiate<H: HashChain>(
@@ -116,13 +115,14 @@ pub fn generate_public_key_candiate<H: HashChain>(
     let lmots_parameter = signature.lmots_parameter;
     let lms_leaf_identifier = lms_leaf_identifier.to_be_bytes();
 
-    let message_hash_with_checksum = get_message_hash_with_checksum(
+    let message_hash = get_message_hash(
         &lmots_parameter,
         lms_tree_identifier,
         &lms_leaf_identifier,
         signature.signature_randomizer,
         message,
     );
+    let message_hash_with_checksum = lmots_parameter.append_checksum_to(message_hash.as_slice());
 
     let mut hasher = lmots_parameter.get_hasher();
     let mut hash_chain_array = HashChainArray::new(&lmots_parameter);

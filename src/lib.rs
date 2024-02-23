@@ -119,7 +119,7 @@ pub use crate::hss::{definitions::InMemoryHssPublicKey, signing::InMemoryHssSign
 pub use crate::hss::{SigningKey, VerifyingKey};
 pub use crate::lm_ots::verify::generate_public_key_candiate as lmots_generate_public_key_candidate;
 pub use crate::lm_ots::parameters::LmotsParameter;
-pub use crate::lm_ots::verify::get_message_hash_with_checksum;
+pub use crate::lm_ots::verify::get_message_hash;
 pub use crate::lms::definitions::InMemoryLmsPublicKey;
 pub use crate::lms::signing::InMemoryLmsSignature;
 
