@@ -1,5 +1,6 @@
-use core::convert::TryFrom;
 extern crate alloc;
+use core::convert::TryFrom;
+
 use alloc::vec;
 use alloc::vec::Vec;
 use digest::generic_array::GenericArray;
@@ -14,9 +15,9 @@ use crate::constants::MAX_HASH_SIZE;
 use super::HashChain;
 
 use plonky2::{
-    field::types::Field,
-    hash::poseidon::PoseidonHash,
-    plonk::config::{GenericConfig, GenericHashOut, Hasher, PoseidonGoldilocksConfig},
+    field::types::{Field, PrimeField64},
+    hash::{hash_types::HashOut, poseidon::PoseidonHash},
+    plonk::config::{GenericConfig, Hasher, PoseidonGoldilocksConfig},
 };
 
 pub const D: usize = 2;
@@ -46,7 +47,7 @@ impl FixedOutput for Poseidon256_256 {
         let f_message = convert_8u8_to_f(&self.message.as_slice());
         let hashout = PoseidonHash::hash_no_pad(f_message.as_slice());
         // convert HashOut to GenericArray
-        *out = GenericArray::clone_from_slice(hashout.to_bytes().as_slice());
+        *out = GenericArray::clone_from_slice(hashout_to_u8(&hashout).as_slice());
     }
 }
 impl Reset for Poseidon256_256 {
@@ -59,7 +60,7 @@ impl FixedOutputReset for Poseidon256_256 {
         let f_message = convert_8u8_to_f(&self.message.as_slice());
         let hashout = PoseidonHash::hash_no_pad(f_message.as_slice());
         // convert HashOut to GenericArray
-        *out = GenericArray::clone_from_slice(hashout.to_bytes().as_slice());
+        *out = GenericArray::clone_from_slice(hashout_to_u8(&hashout).as_slice());
         self.reset();
     }
 }
@@ -95,6 +96,14 @@ pub fn convert_8u8_to_f(data: &[u8]) -> Vec<F> {
         .collect::<Vec<F>>()
 }
 
+pub fn hashout_to_u8(hashout: &HashOut<F>) -> Vec<u8> {
+    hashout
+        .elements
+        .iter()
+        .map(|x| x.to_canonical_u64().to_be_bytes())
+        .flatten()
+        .collect::<Vec<_>>()
+}
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -103,7 +112,7 @@ mod tests {
 
     use plonky2::{
         hash::poseidon::PoseidonHash,
-        plonk::config::{GenericHashOut, Hasher},
+        plonk::config::Hasher,
     };
 
     #[test]
@@ -113,7 +122,7 @@ mod tests {
         hash_chain.update(message);
         let left = hash_chain.finalize().to_vec();
         let f_message = convert_8u8_to_f(&fill_leading_zero(message).as_slice());
-        let right = PoseidonHash::hash_no_pad(f_message.as_slice()).to_bytes();
+        let right = hashout_to_u8(&PoseidonHash::hash_no_pad(f_message.as_slice()));
         assert_eq!(left, right);
         assert_ne!(left, vec![0u8; 32]);
     }
@@ -131,7 +140,7 @@ mod tests {
             f_message.to_vec()
         );
         let left = hash_chain.finalize().to_vec();
-        let right = PoseidonHash::hash_no_pad(&f_message).to_bytes();
+        let right = hashout_to_u8(&PoseidonHash::hash_no_pad(&f_message));
         assert_eq!(left, right);
         assert_ne!(left, vec![0u8; 32]);
     }
