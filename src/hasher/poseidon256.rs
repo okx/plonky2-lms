@@ -105,6 +105,7 @@ pub fn hashout_to_u8(hashout: &HashOut<F>) -> Vec<u8> {
         .collect::<Vec<_>>()
 }
 
+#[allow(dead_code)]
 pub fn u8_to_hashout(data: &[u8]) -> HashOut<F> {
     HashOut::from_vec(u8_slice_to_f(data))
 }
