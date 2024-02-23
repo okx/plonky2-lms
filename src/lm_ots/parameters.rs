@@ -177,7 +177,7 @@ impl<H: HashChain> LmotsParameter<H> {
         total_hash_chain_iterations
     }
 
-    fn checksum(&self, byte_string: &[u8]) -> u16 {
+    pub fn checksum(&self, byte_string: &[u8]) -> u16 {
         let mut sum = 0_u16;
 
         let max = (Self::HASH_FUNCTION_OUTPUT_SIZE * 8) / self.get_winternitz() as u16;
