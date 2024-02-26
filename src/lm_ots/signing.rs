@@ -34,6 +34,7 @@ pub struct InMemoryLmotsSignature<'a, H: HashChain> {
     pub signature_randomizer: &'a [u8],
     pub signature_data: &'a [u8],
     pub lmots_parameter: LmotsParameter<H>,
+    pub raw_data: &'a [u8],
 }
 
 impl<'a, H: HashChain> PartialEq<LmotsSignature<H>> for InMemoryLmotsSignature<'a, H> {
@@ -236,6 +237,7 @@ impl<'a, H: HashChain> InMemoryLmotsSignature<'a, H> {
             signature_randomizer,
             signature_data,
             lmots_parameter,
+            raw_data: data,
         })
     }
 

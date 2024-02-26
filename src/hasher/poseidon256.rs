@@ -44,7 +44,7 @@ impl OutputSizeUser for Poseidon256_256 {
 }
 impl FixedOutput for Poseidon256_256 {
     fn finalize_into(self, out: &mut Output<Self>) {
-        let f_message = u8_slice_to_f(&self.message.as_slice());
+        let f_message = u8_to_f(&self.message.as_slice());
         let hashout = PoseidonHash::hash_no_pad(f_message.as_slice());
         // convert HashOut to GenericArray
         *out = GenericArray::clone_from_slice(hashout_to_u8(&hashout).as_slice());
@@ -57,7 +57,7 @@ impl Reset for Poseidon256_256 {
 }
 impl FixedOutputReset for Poseidon256_256 {
     fn finalize_into_reset(&mut self, out: &mut Output<Self>) {
-        let f_message = u8_slice_to_f(&self.message.as_slice());
+        let f_message = u8_to_f(&self.message.as_slice());
         let hashout = PoseidonHash::hash_no_pad(f_message.as_slice());
         // convert HashOut to GenericArray
         *out = GenericArray::clone_from_slice(hashout_to_u8(&hashout).as_slice());
@@ -84,9 +84,8 @@ pub fn fill_leading_zero(data: &[u8]) -> Vec<u8> {
     data
 }
 
-/// Convert 8u8 to F
-/// data should be multiple of 8
-pub fn u8_slice_to_f(data: &[u8]) -> Vec<F> {
+/// data in big endian, its length should be multiple of 8
+pub fn u8_to_f(data: &[u8]) -> Vec<F> {
     data.chunks_exact(8)
         .map(|chunk| {
             let mut bytes = [0u8; 8];
@@ -107,8 +106,9 @@ pub fn hashout_to_u8(hashout: &HashOut<F>) -> Vec<u8> {
 
 #[allow(dead_code)]
 pub fn u8_to_hashout(data: &[u8]) -> HashOut<F> {
-    HashOut::from_vec(u8_slice_to_f(data))
+    HashOut::from_vec(u8_to_f(data))
 }
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -126,7 +126,7 @@ mod tests {
         let message = b"hello world";
         hash_chain.update(message);
         let left = hash_chain.finalize().to_vec();
-        let f_message = u8_slice_to_f(&fill_leading_zero(message).as_slice());
+        let f_message = u8_to_f(&fill_leading_zero(message).as_slice());
         let right = hashout_to_u8(&PoseidonHash::hash_no_pad(f_message.as_slice()));
         assert_eq!(left, right);
         assert_ne!(left, vec![0u8; 32]);
@@ -141,12 +141,28 @@ mod tests {
             hash_chain.update(&m.to_be_bytes());
         });
         assert_eq!(
-            u8_slice_to_f(hash_chain.message.as_slice()),
+            u8_to_f(hash_chain.message.as_slice()),
             f_message.to_vec()
         );
         let left = hash_chain.finalize().to_vec();
         let right = hashout_to_u8(&PoseidonHash::hash_no_pad(&f_message));
         assert_eq!(left, right);
         assert_ne!(left, vec![0u8; 32]);
+    }
+
+    #[test]
+    fn test_u8_hashout_conversion() {
+        let before = vec![1u8; 32];
+        let after = hashout_to_u8(&u8_to_hashout(before.as_slice()));
+        assert_eq!(before, after);
+    }
+
+    #[test]
+    fn test_u8_to_f() {
+        let values: Vec<u64> = vec![0x2, 0x1];
+        let before = values.iter().map(|&x| x.to_be_bytes()).flatten().collect::<Vec<u8>>();
+        let after = u8_to_f(&before);
+        let expected = values.iter().map(|x| F::from_canonical_u64(*x)).collect::<Vec<F>>();
+        assert_eq!(after, expected);
     }
 }

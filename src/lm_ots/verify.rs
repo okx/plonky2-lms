@@ -1,8 +1,12 @@
+extern crate alloc;
+use core::convert::TryInto;
 use core::{marker::PhantomData, usize};
 
+use alloc::vec::Vec;
 use tinyvec::ArrayVec;
 
 use crate::lm_ots::parameters::LmotsParameter;
+use crate::Poseidon256_256;
 use crate::{constants::*, hasher::HashChain, util::coef::coef, LmotsAlgorithm};
 
 use super::{definitions::LmotsPublicKey, signing::InMemoryLmotsSignature};
@@ -78,7 +82,7 @@ pub fn verify_signature_inmemory<H: HashChain>(
         return false;
     }
 
-    let public_key_candidate = generate_public_key_candiate(
+    let public_key_candidate = generate_public_key_candidate(
         signature,
         &public_key.lms_tree_identifier,
         u32::from_be_bytes(public_key.lms_leaf_identifier),
@@ -106,7 +110,37 @@ pub fn get_message_hash<H: HashChain>(
     hasher.finalize_reset()
 }
 
-pub fn generate_public_key_candiate<H: HashChain>(
+pub fn get_hash_chain_array<H: HashChain>(
+    signature: &InMemoryLmotsSignature<'_, H>,
+    lmots_parameter: &LmotsParameter<H>,
+    lms_tree_identifier: &[u8],
+    lms_leaf_identifier: &[u8],
+    message_hash_with_checksum: &[u8],
+) -> Vec<Vec<u8>> {
+    let mut hasher = lmots_parameter.get_hasher();
+    let mut hash_chain_array = Vec::new();
+    let max_w = 2usize.pow(lmots_parameter.get_winternitz() as u32) - 1;
+
+    for i in 0..lmots_parameter.get_hash_chain_count() {
+        let a = coef(
+            message_hash_with_checksum,
+            i,
+            lmots_parameter.get_winternitz(),
+        ) as usize;
+
+        let initial = signature.get_signature_data(i as usize);
+        let mut hash_chain_data =
+            H::prepare_hash_chain_data(lms_tree_identifier, &lms_leaf_identifier);
+        let result = hasher
+            .do_hash_chain(&mut hash_chain_data, i, initial, a, max_w)
+            .to_vec();
+
+        hash_chain_array.push(result);
+    }
+    hash_chain_array
+}
+
+pub fn generate_public_key_candidate<H: HashChain>(
     signature: &InMemoryLmotsSignature<'_, H>,
     lms_tree_identifier: &[u8],
     lms_leaf_identifier: u32,
@@ -123,26 +157,15 @@ pub fn generate_public_key_candiate<H: HashChain>(
         message,
     );
     let message_hash_with_checksum = lmots_parameter.append_checksum_to(message_hash.as_slice());
+    let hash_chain_array = get_hash_chain_array(
+        signature,
+        &lmots_parameter,
+        lms_tree_identifier,
+        &lms_leaf_identifier,
+        message_hash_with_checksum.as_slice(),
+    );
 
     let mut hasher = lmots_parameter.get_hasher();
-    let mut hash_chain_array = HashChainArray::new(&lmots_parameter);
-    let max_w = 2usize.pow(lmots_parameter.get_winternitz() as u32) - 1;
-
-    for i in 0..lmots_parameter.get_hash_chain_count() {
-        let a = coef(
-            message_hash_with_checksum.as_slice(),
-            i,
-            lmots_parameter.get_winternitz(),
-        ) as usize;
-
-        let initial = signature.get_signature_data(i as usize);
-        let mut hash_chain_data =
-            H::prepare_hash_chain_data(lms_tree_identifier, &lms_leaf_identifier);
-        let result = hasher.do_hash_chain(&mut hash_chain_data, i, initial, a, max_w);
-
-        hash_chain_array.push(&result);
-    }
-
     hasher.update(lms_tree_identifier);
     hasher.update(&lms_leaf_identifier);
     hasher.update(&D_PBLC);

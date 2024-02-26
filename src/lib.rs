@@ -87,7 +87,7 @@ extern crate core;
 mod constants;
 mod hasher;
 mod hss;
-mod lm_ots;
+pub mod lm_ots;
 mod lms;
 mod util;
 
@@ -117,7 +117,6 @@ pub use crate::hss::hss_sign_mut as sign_mut;
 pub use crate::hss::hss_verify as verify;
 pub use crate::hss::{definitions::InMemoryHssPublicKey, signing::InMemoryHssSignature};
 pub use crate::hss::{SigningKey, VerifyingKey};
-pub use crate::lm_ots::verify::generate_public_key_candiate as lmots_generate_public_key_candidate;
 pub use crate::lm_ots::parameters::LmotsParameter;
 pub use crate::lm_ots::verify::get_message_hash;
 pub use crate::lms::definitions::InMemoryLmsPublicKey;

@@ -40,7 +40,7 @@ fn generate_public_key_candiate<'a, H: HashChain>(
         return Err(());
     }
 
-    let ots_public_key_canditate = lm_ots::verify::generate_public_key_candiate(
+    let ots_public_key_canditate = lm_ots::verify::generate_public_key_candidate(
         &signature.lmots_signature,
         public_key.lms_tree_identifier,
         signature.lms_leaf_identifier,
