@@ -1,16 +1,15 @@
 extern crate alloc;
-use core::convert::TryInto;
 use core::{marker::PhantomData, usize};
 
 use alloc::vec::Vec;
 use tinyvec::ArrayVec;
 
 use crate::lm_ots::parameters::LmotsParameter;
-use crate::Poseidon256_256;
 use crate::{constants::*, hasher::HashChain, util::coef::coef, LmotsAlgorithm};
 
 use super::{definitions::LmotsPublicKey, signing::InMemoryLmotsSignature};
 
+#[allow(dead_code)]
 #[derive(Default)]
 struct HashChainArray<H: HashChain> {
     pub array_w1:
@@ -24,6 +23,7 @@ struct HashChainArray<H: HashChain> {
     phantom_data: PhantomData<H>,
 }
 
+#[allow(dead_code)]
 impl<H: HashChain> HashChainArray<H> {
     pub fn new(lmots_parameter: &LmotsParameter<H>) -> Self {
         let mut hash_chain_array = HashChainArray::<H>::default();
