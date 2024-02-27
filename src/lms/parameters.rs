@@ -1,12 +1,13 @@
 use core::marker::PhantomData;
 
 use crate::hasher::{sha256::Sha256_256, HashChain};
+use core::fmt::Debug;
+use core::fmt;
 
 /// Specifies the used Tree height.
 #[derive(Clone, Copy)]
 pub enum LmsAlgorithm {
     LmsReserved = 0,
-    #[cfg(test)]
     LmsH2 = 1,
     LmsH5 = 5,
     LmsH10 = 6,
@@ -15,6 +16,19 @@ pub enum LmsAlgorithm {
     LmsH25 = 9,
 }
 
+impl Debug for LmsAlgorithm {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            LmsAlgorithm::LmsReserved => write!(f, "LmsReserved"),
+            LmsAlgorithm::LmsH2 => write!(f, "H2"),
+            LmsAlgorithm::LmsH5 => write!(f, "H5"),
+            LmsAlgorithm::LmsH10 => write!(f, "H10"),
+            LmsAlgorithm::LmsH15 => write!(f, "H15"),
+            LmsAlgorithm::LmsH20 => write!(f, "H20"),
+            LmsAlgorithm::LmsH25 => write!(f, "H25"),
+        }
+    }
+}
 impl Default for LmsAlgorithm {
     fn default() -> Self {
         LmsAlgorithm::LmsReserved
@@ -44,7 +58,6 @@ impl LmsAlgorithm {
     pub fn construct_parameter<H: HashChain>(&self) -> Option<LmsParameter<H>> {
         match *self {
             LmsAlgorithm::LmsReserved => None,
-            #[cfg(test)]
             LmsAlgorithm::LmsH2 => Some(LmsParameter::new(1, 2)),
             LmsAlgorithm::LmsH5 => Some(LmsParameter::new(5, 5)),
             LmsAlgorithm::LmsH10 => Some(LmsParameter::new(6, 10)),

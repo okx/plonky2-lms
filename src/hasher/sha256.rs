@@ -23,6 +23,7 @@ macro_rules! define_sha {
         impl HashChain for $name {
             const OUTPUT_SIZE: u16 = $output_size;
             const BLOCK_SIZE: u16 = 64;
+            const NAME: &'static str = stringify!($name);
 
             fn finalize(self) -> ArrayVec<[u8; MAX_HASH_SIZE]> {
                 ArrayVec::try_from(&self.hasher.finalize_fixed()[..(Self::OUTPUT_SIZE as usize)])

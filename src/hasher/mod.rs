@@ -31,6 +31,7 @@ pub trait HashChain:
 {
     const OUTPUT_SIZE: u16;
     const BLOCK_SIZE: u16;
+    const NAME: &'static str;
 
     fn finalize(self) -> ArrayVec<[u8; MAX_HASH_SIZE]>;
     fn finalize_reset(&mut self) -> ArrayVec<[u8; MAX_HASH_SIZE]>;

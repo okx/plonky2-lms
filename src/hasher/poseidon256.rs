@@ -32,6 +32,8 @@ pub struct Poseidon256_256 {
 impl HashChain for Poseidon256_256 {
     const OUTPUT_SIZE: u16 = 32;
     const BLOCK_SIZE: u16 = 64;
+    const NAME: &'static str = "Poseidon256_256";
+    
     fn finalize(self) -> ArrayVec<[u8; MAX_HASH_SIZE]> {
         ArrayVec::try_from(&self.finalize_fixed()[..(Self::OUTPUT_SIZE as usize)]).unwrap()
     }
