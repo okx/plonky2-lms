@@ -12,6 +12,10 @@ mod tests {
         Signature, SigningKey, VerifierSignature, VerifyingKey,
     };
 
+    use digest::Update;
+    use hbs_lms::hasher::poseidon256::Poseidon256_256;
+    use hbs_lms::HashChain;
+
     const MESSAGE: [u8; 17] = [
         32u8, 48, 2, 1, 48, 58, 20, 57, 9, 83, 99, 255, 0, 34, 2, 1, 0,
     ];
@@ -44,6 +48,28 @@ mod tests {
         let signature = signing_key.try_sign(&MESSAGE).unwrap();
 
         (verifying_key, signature)
+    }
+
+    #[bench]
+    fn hasher_poseidon256_256(b: &mut Bencher) {
+        let mut hash_chain: Poseidon256_256 = Default::default();
+        let message = [1u8; 200];
+
+        b.iter(|| {
+            hash_chain.update(&message);
+            hash_chain.finalize_reset();
+        });
+    }
+
+    #[bench]
+    fn hasher_sha256_256(b: &mut Bencher) {
+        let mut hash_chain: Sha256_256 = Default::default();
+        let message = [1u8; 200];
+
+        b.iter(|| {
+            hash_chain.update(&message);
+            hash_chain.finalize_reset();
+        });
     }
 
     #[bench]

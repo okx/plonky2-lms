@@ -85,7 +85,7 @@
 extern crate core;
 
 pub mod constants;
-mod hasher;
+pub mod hasher;
 mod hss;
 pub mod lm_ots;
 mod lms;
