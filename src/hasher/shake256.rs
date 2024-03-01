@@ -25,6 +25,7 @@ macro_rules! define_shake {
         impl HashChain for $name {
             const OUTPUT_SIZE: u16 = $output_size;
             const BLOCK_SIZE: u16 = 64;
+            const NAME: &'static str = stringify!($name);
 
             fn finalize(self) -> ArrayVec<[u8; MAX_HASH_SIZE]> {
                 let mut digest = [0u8; MAX_HASH_SIZE];

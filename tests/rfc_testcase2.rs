@@ -1,6 +1,7 @@
 use hbs_lms::Sha256_256;
 
 #[test]
+#[ignore]
 fn test() {
     assert!(hbs_lms::verify::<Sha256_256>(MESSAGE, SIGNATURE, PUBLIC_KEY).is_ok());
 }

@@ -1,5 +1,7 @@
+extern crate alloc;
 use core::{marker::PhantomData, usize};
 
+use alloc::vec::Vec;
 use tinyvec::ArrayVec;
 
 use crate::lm_ots::parameters::LmotsParameter;
@@ -7,6 +9,7 @@ use crate::{constants::*, hasher::HashChain, util::coef::coef, LmotsAlgorithm};
 
 use super::{definitions::LmotsPublicKey, signing::InMemoryLmotsSignature};
 
+#[allow(dead_code)]
 #[derive(Default)]
 struct HashChainArray<H: HashChain> {
     pub array_w1:
@@ -20,6 +23,7 @@ struct HashChainArray<H: HashChain> {
     phantom_data: PhantomData<H>,
 }
 
+#[allow(dead_code)]
 impl<H: HashChain> HashChainArray<H> {
     pub fn new(lmots_parameter: &LmotsParameter<H>) -> Self {
         let mut hash_chain_array = HashChainArray::<H>::default();
@@ -78,7 +82,7 @@ pub fn verify_signature_inmemory<H: HashChain>(
         return false;
     }
 
-    let public_key_candidate = generate_public_key_candiate(
+    let public_key_candidate = generate_public_key_candidate(
         signature,
         &public_key.lms_tree_identifier,
         u32::from_be_bytes(public_key.lms_leaf_identifier),
@@ -88,32 +92,38 @@ pub fn verify_signature_inmemory<H: HashChain>(
     public_key_candidate == public_key.key
 }
 
-pub fn generate_public_key_candiate<H: HashChain>(
-    signature: &InMemoryLmotsSignature<'_, H>,
+pub fn get_message_hash<H: HashChain>(
+    lmots_parameter: &LmotsParameter<H>,
     lms_tree_identifier: &[u8],
-    lms_leaf_identifier: u32,
+    lms_leaf_identifier: &[u8],
+    signature_randomizer: &[u8],
     message: &[u8],
 ) -> ArrayVec<[u8; MAX_HASH_SIZE]> {
-    let lmots_parameter = signature.lmots_parameter;
     let mut hasher = lmots_parameter.get_hasher();
-
-    let lms_leaf_identifier = lms_leaf_identifier.to_be_bytes();
 
     hasher.update(lms_tree_identifier);
     hasher.update(&lms_leaf_identifier);
     hasher.update(&D_MESG);
-    hasher.update(signature.signature_randomizer);
+    hasher.update(signature_randomizer);
     hasher.update(message);
 
-    let message_hash = hasher.finalize_reset();
-    let message_hash_with_checksum = lmots_parameter.append_checksum_to(message_hash.as_slice());
+    hasher.finalize_reset()
+}
 
-    let mut hash_chain_array = HashChainArray::new(&lmots_parameter);
+pub fn get_hash_chain_array<H: HashChain>(
+    signature: &InMemoryLmotsSignature<'_, H>,
+    lmots_parameter: &LmotsParameter<H>,
+    lms_tree_identifier: &[u8],
+    lms_leaf_identifier: &[u8],
+    message_hash_with_checksum: &[u8],
+) -> Vec<Vec<u8>> {
+    let mut hasher = lmots_parameter.get_hasher();
+    let mut hash_chain_array = Vec::new();
     let max_w = 2usize.pow(lmots_parameter.get_winternitz() as u32) - 1;
 
     for i in 0..lmots_parameter.get_hash_chain_count() {
         let a = coef(
-            message_hash_with_checksum.as_slice(),
+            message_hash_with_checksum,
             i,
             lmots_parameter.get_winternitz(),
         ) as usize;
@@ -121,11 +131,41 @@ pub fn generate_public_key_candiate<H: HashChain>(
         let initial = signature.get_signature_data(i as usize);
         let mut hash_chain_data =
             H::prepare_hash_chain_data(lms_tree_identifier, &lms_leaf_identifier);
-        let result = hasher.do_hash_chain(&mut hash_chain_data, i, initial, a, max_w);
+        let result = hasher
+            .do_hash_chain(&mut hash_chain_data, i, initial, a, max_w)
+            .to_vec();
 
-        hash_chain_array.push(&result);
+        hash_chain_array.push(result);
     }
+    hash_chain_array
+}
 
+pub fn generate_public_key_candidate<H: HashChain>(
+    signature: &InMemoryLmotsSignature<'_, H>,
+    lms_tree_identifier: &[u8],
+    lms_leaf_identifier: u32,
+    message: &[u8],
+) -> ArrayVec<[u8; MAX_HASH_SIZE]> {
+    let lmots_parameter = signature.lmots_parameter;
+    let lms_leaf_identifier = lms_leaf_identifier.to_be_bytes();
+
+    let message_hash = get_message_hash(
+        &lmots_parameter,
+        lms_tree_identifier,
+        &lms_leaf_identifier,
+        signature.signature_randomizer,
+        message,
+    );
+    let message_hash_with_checksum = lmots_parameter.append_checksum_to(message_hash.as_slice());
+    let hash_chain_array = get_hash_chain_array(
+        signature,
+        &lmots_parameter,
+        lms_tree_identifier,
+        &lms_leaf_identifier,
+        message_hash_with_checksum.as_slice(),
+    );
+
+    let mut hasher = lmots_parameter.get_hasher();
     hasher.update(lms_tree_identifier);
     hasher.update(&lms_leaf_identifier);
     hasher.update(&D_PBLC);
@@ -152,6 +192,7 @@ mod tests {
         signing::{InMemoryLmotsSignature, LmotsSignature},
         verify::verify_signature_inmemory,
     };
+    use crate::Poseidon256_256;
 
     use rand::{rngs::OsRng, RngCore};
 
@@ -262,5 +303,29 @@ mod tests {
         lmots_sha256_n16_w8_verify_test,
         parameters::LmotsAlgorithm::LmotsW8,
         Sha256_128
+    );
+
+    generate_test!(
+        lmots_poseidon256_n32_w1_verify_test,
+        parameters::LmotsAlgorithm::LmotsW1,
+        Poseidon256_256
+    );
+
+    generate_test!(
+        lmots_poseidon256_n32_w2_verify_test,
+        parameters::LmotsAlgorithm::LmotsW2,
+        Poseidon256_256
+    );
+
+    generate_test!(
+        lmots_poseidon256_n32_w4_verify_test,
+        parameters::LmotsAlgorithm::LmotsW4,
+        Poseidon256_256
+    );
+
+    generate_test!(
+        lmots_poseidon256_n32_w8_verify_test,
+        parameters::LmotsAlgorithm::LmotsW8,
+        Poseidon256_256
     );
 }

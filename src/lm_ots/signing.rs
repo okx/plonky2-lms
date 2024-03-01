@@ -34,6 +34,7 @@ pub struct InMemoryLmotsSignature<'a, H: HashChain> {
     pub signature_randomizer: &'a [u8],
     pub signature_data: &'a [u8],
     pub lmots_parameter: LmotsParameter<H>,
+    pub raw_data: &'a [u8],
 }
 
 impl<'a, H: HashChain> PartialEq<LmotsSignature<H>> for InMemoryLmotsSignature<'a, H> {
@@ -236,6 +237,7 @@ impl<'a, H: HashChain> InMemoryLmotsSignature<'a, H> {
             signature_randomizer,
             signature_data,
             lmots_parameter,
+            raw_data: data,
         })
     }
 
@@ -344,8 +346,8 @@ mod tests {
             shake256::{Shake256_128, Shake256_192, Shake256_256},
         },
         lm_ots::{
-            parameters::LmotsAlgorithm, signing::InMemoryLmotsSignature, signing::LmotsSignature,
-        },
+            parameters::LmotsAlgorithm, signing::{InMemoryLmotsSignature, LmotsSignature},
+        }, Poseidon256_256,
     };
 
     macro_rules! generate_test {
@@ -403,4 +405,6 @@ mod tests {
     generate_test!(lmots_shake256_n24_binary_representation_test, Shake256_192);
 
     generate_test!(lmots_shake256_n16_binary_representation_test, Shake256_256);
+
+    generate_test!(lmots_poseidon256_n32_binary_representation_test, Poseidon256_256);
 }

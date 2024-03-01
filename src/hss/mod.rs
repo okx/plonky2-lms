@@ -292,6 +292,7 @@ pub fn hss_keygen<H: HashChain>(
 #[cfg(test)]
 mod tests {
     use crate::util::helper::test_helper::gen_random_seed;
+    use crate::Poseidon256_256;
     use crate::{
         constants::{LMS_LEAF_IDENTIFIERS_SIZE, MAX_HASH_SIZE},
         hasher::{
@@ -497,6 +498,11 @@ mod tests {
     #[test]
     fn test_signing_shake256_256() {
         test_signing_core::<Shake256_256>();
+    }
+
+    #[test]
+    fn test_signing_poseidon256_256() {
+        test_signing_core::<Poseidon256_256>();
     }
 
     fn test_signing_core<H: HashChain>() {

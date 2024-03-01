@@ -84,10 +84,10 @@
 
 extern crate core;
 
-mod constants;
-mod hasher;
+pub mod constants;
+pub mod hasher;
 mod hss;
-mod lm_ots;
+pub mod lm_ots;
 mod lms;
 mod util;
 
@@ -100,6 +100,7 @@ pub use crate::constants::MAX_HASH_SIZE;
 pub use crate::hss::reference_impl_private_key::Seed;
 
 pub use crate::hasher::{
+    poseidon256::Poseidon256_256,
     sha256::{Sha256_128, Sha256_192, Sha256_256},
     shake256::{Shake256_128, Shake256_192, Shake256_256},
     HashChain, HashChainData,
@@ -114,7 +115,12 @@ pub use crate::hss::hss_sign as sign;
 #[cfg(feature = "fast_verify")]
 pub use crate::hss::hss_sign_mut as sign_mut;
 pub use crate::hss::hss_verify as verify;
+pub use crate::hss::{definitions::InMemoryHssPublicKey, signing::InMemoryHssSignature};
 pub use crate::hss::{SigningKey, VerifyingKey};
+pub use crate::lm_ots::parameters::LmotsParameter;
+pub use crate::lm_ots::verify::get_message_hash;
+pub use crate::lms::definitions::InMemoryLmsPublicKey;
+pub use crate::lms::signing::InMemoryLmsSignature;
 
 use core::convert::TryFrom;
 use signature::Error;
@@ -186,7 +192,8 @@ impl<'a> signature::Signature for VerifierSignature<'a> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{keygen, HssParameter, LmotsAlgorithm, LmsAlgorithm, Sha256_256};
+    use crate::hasher::poseidon256::Poseidon256_256;
+    use crate::{keygen, HssParameter, LmotsAlgorithm, LmsAlgorithm};
     use crate::{
         signature::{SignerMut, Verifier},
         SigningKey, VerifierSignature, VerifyingKey,
@@ -196,7 +203,7 @@ mod tests {
 
     #[test]
     fn get_signing_and_verifying_key() {
-        type H = Sha256_256;
+        type H = Poseidon256_256;
         let seed = gen_random_seed::<H>();
 
         let (signing_key, verifying_key) = keygen::<H>(
@@ -218,7 +225,7 @@ mod tests {
         let message = [
             32u8, 48, 2, 1, 48, 58, 20, 57, 9, 83, 99, 255, 0, 34, 2, 1, 0,
         ];
-        type H = Sha256_256;
+        type H = Poseidon256_256;
         let seed = gen_random_seed::<H>();
 
         let (mut signing_key, verifying_key) = keygen::<H>(

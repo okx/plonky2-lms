@@ -63,7 +63,7 @@ pub const MAX_HSS_PUBLIC_KEY_LENGTH: usize = size_of::<u32>()       // HSS Level
         + lms_public_key_length(MAX_HASH_SIZE); // Root LMS PublicKey
 pub const MAX_HSS_SIGNED_PUBLIC_KEY_LENGTH: usize =
     hss_signed_public_key_length(MAX_HASH_SIZE, MAX_HASH_CHAIN_COUNT, MAX_TREE_HEIGHT);
-pub const MAX_HSS_SIGNATURE_LENGTH: usize = get_hss_signature_length();
+pub const MAX_HSS_SIGNATURE_LENGTH: usize = get_hss_signature_length(MAX_ALLOWED_HSS_LEVELS, &WINTERNITZ_PARAMETERS, &TREE_HEIGHTS);
 
 /// Calculated using the formula from RFC 8554 Appendix B
 /// https://datatracker.ietf.org/doc/html/rfc8554#appendix-B
@@ -121,15 +121,15 @@ pub const fn hss_signed_public_key_length(
         + MAX_LMS_PUBLIC_KEY_LENGTH // LMS PublicKey
 }
 
-pub const fn get_hss_signature_length() -> usize {
+pub const fn get_hss_signature_length(hss_level: usize, winternitz_parameters: &[usize], tree_heights: &[usize]) -> usize {
     let mut length = size_of::<u32>();
 
-    let mut level = MAX_ALLOWED_HSS_LEVELS - 1;
+    let mut level = hss_level - 1;
     while level > 0 {
         length += hss_signed_public_key_length(
             MAX_HASH_SIZE,
-            get_hash_chain_count(WINTERNITZ_PARAMETERS[level], MAX_HASH_SIZE),
-            TREE_HEIGHTS[level],
+            get_hash_chain_count(winternitz_parameters[level], MAX_HASH_SIZE),
+            tree_heights[level],
         );
         level -= 1;
     }
@@ -137,8 +137,8 @@ pub const fn get_hss_signature_length() -> usize {
     length
         + lms_signature_length(
             MAX_HASH_SIZE,
-            get_hash_chain_count(WINTERNITZ_PARAMETERS[0], MAX_HASH_SIZE),
-            TREE_HEIGHTS[0],
+            get_hash_chain_count(winternitz_parameters[0], MAX_HASH_SIZE),
+            tree_heights[0],
         )
 }
 
@@ -148,21 +148,21 @@ pub const DAUX_D: usize = 20;
 pub const DAUX_PREFIX_LEN: usize = 22; /* Not counting the seed value */
 pub const D_DAUX: u16 = 0xfdfd;
 
-pub mod winternitz_chain {
-    use super::MAX_HASH_SIZE;
+// pub mod winternitz_chain {
+//     use super::MAX_HASH_SIZE;
 
-    pub const ITER_I: usize = 0;
-    pub const ITER_Q: usize = 16;
-    pub const ITER_K: usize = 20;
-    pub const ITER_J: usize = 22;
-    pub const ITER_PREV: usize = 23;
+//     pub const ITER_I: usize = 0;
+//     pub const ITER_Q: usize = 16;
+//     pub const ITER_K: usize = 20;
+//     pub const ITER_J: usize = 22;
+//     pub const ITER_PREV: usize = 23;
 
-    pub const fn iter_len(hash_len: usize) -> usize {
-        ITER_PREV + hash_len
-    }
+//     pub const fn iter_len(hash_len: usize) -> usize {
+//         ITER_PREV + hash_len
+//     }
 
-    pub const ITER_MAX_LEN: usize = iter_len(MAX_HASH_SIZE);
-}
+//     pub const ITER_MAX_LEN: usize = iter_len(MAX_HASH_SIZE);
+// }
 
 #[cfg(test)]
 mod tests {

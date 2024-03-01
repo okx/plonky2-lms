@@ -1,3 +1,4 @@
+use core::fmt::Debug;
 use core::marker::PhantomData;
 
 use tinyvec::ArrayVec;
@@ -21,6 +22,18 @@ pub enum LmotsAlgorithm {
     LmotsW8 = 4,
 }
 
+impl Debug for LmotsAlgorithm {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            LmotsAlgorithm::LmotsReserved => write!(f, "LmotsReserved"),
+            LmotsAlgorithm::LmotsW1 => write!(f, "W1"),
+            LmotsAlgorithm::LmotsW2 => write!(f, "W2"),
+            LmotsAlgorithm::LmotsW4 => write!(f, "W4"),
+            LmotsAlgorithm::LmotsW8 => write!(f, "W8"),
+        }
+    }
+
+}
 impl Default for LmotsAlgorithm {
     fn default() -> Self {
         LmotsAlgorithm::LmotsReserved
@@ -177,7 +190,7 @@ impl<H: HashChain> LmotsParameter<H> {
         total_hash_chain_iterations
     }
 
-    fn checksum(&self, byte_string: &[u8]) -> u16 {
+    pub fn checksum(&self, byte_string: &[u8]) -> u16 {
         let mut sum = 0_u16;
 
         let max = (Self::HASH_FUNCTION_OUTPUT_SIZE * 8) / self.get_winternitz() as u16;
