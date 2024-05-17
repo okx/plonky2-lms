@@ -1,6 +1,6 @@
 use super::constants::*;
 use plonky2::{
-    field::{extension::Extendable, goldilocks_field::GoldilocksField, types::PrimeField64}, hash::hash_types::{HashOut, RichField}, iop::target::Target, plonk::circuit_builder::CircuitBuilder
+    field::{extension::Extendable}, hash::hash_types::{HashOut, RichField}, iop::target::Target, plonk::circuit_builder::CircuitBuilder
 };
 
 pub fn u8_to_f<F: RichField + Extendable<D>, const D: usize>(data: &[u8]) -> Vec<F> {
@@ -17,18 +17,6 @@ pub fn u8_to_1f<F: RichField + Extendable<D>, const D: usize>(data: &[u8]) -> F 
     let vec = u8_to_f(data);
     assert_eq!(vec.len(), 1);
     vec[0]
-}
-
-/// Big endian conversion
-///
-/// HashOut.to_bytes() is small endian
-pub fn hashout_to_u8(hashout: &HashOut<GoldilocksField>) -> Vec<u8> {
-    hashout
-        .elements
-        .into_iter()
-        .map(|x| x.to_canonical_u64().to_be_bytes())
-        .flatten()
-        .collect::<Vec<_>>()
 }
 
 pub fn u8_to_hashout<F: RichField + Extendable<D>, const D: usize>(data: &[u8]) -> HashOut<F> {
@@ -57,11 +45,11 @@ pub fn assert_greater<F: RichField + Extendable<D>, const D: usize>(
 #[cfg(test)]
 pub(crate) mod test_util {
     use plonky2::{
-        field::extension::Extendable,
-        hash::hash_types::RichField,
+        field::{extension::Extendable, goldilocks_field::GoldilocksField, types::PrimeField64},
+        hash::hash_types::{HashOut, RichField},
         iop::witness::PartialWitness,
         plonk::{
-            circuit_builder::CircuitBuilder, circuit_data::{CircuitConfig, CircuitData}, config::GenericConfig,
+            circuit_builder::CircuitBuilder, circuit_data::CircuitConfig, config::GenericConfig,
         },
     };
 
@@ -83,12 +71,25 @@ pub(crate) mod test_util {
         let proof = data.prove(pw).expect("Prove fail");
         data.verify(proof).expect("Verify fail")
     }
+
+    /// Big endian conversion
+    ///
+    /// HashOut.to_bytes() is small endian
+    pub fn hashout_to_u8(hashout: &HashOut<GoldilocksField>) -> Vec<u8> {
+        hashout
+            .elements
+            .into_iter()
+            .map(|x| x.to_canonical_u64().to_be_bytes())
+            .flatten()
+            .collect::<Vec<_>>()
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use plonky2::field::types::Field;
+    use tests::test_util::hashout_to_u8;
 
     #[test]
     fn test_u8_hashout_conversion() {

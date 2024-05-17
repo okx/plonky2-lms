@@ -1,19 +1,19 @@
 use crate::keygen;
 use crate::signature::SignerMut;
 use crate::util::helper::test_helper::gen_random_seed;
-use crate::Seed;
+
 use crate::{
     HssParameter, LmotsAlgorithm, LmsAlgorithm, Poseidon256_256, Signature, VerifyingKey,
 };
 use plonky2::field::extension::Extendable;
-use plonky2::field::goldilocks_field::GoldilocksField;
+
 use plonky2::hash::hash_types::RichField;
 use plonky2::iop::witness::PartialWitness;
 use plonky2::plonk::circuit_builder::CircuitBuilder;
 use plonky2::plonk::circuit_data::CircuitConfig;
-use plonky2::plonk::config::GenericConfig;
 
-use plonky2::field::types::Field;
+
+
 
 use self::constants::{F, D};
 use self::lms::{build_lms_verify_circuit, LmsPublicKeyProvingInput, LmsPublicKeyTarget, LmsSignatureProvingInput, LmsSignatureTarget, MessageProvingInput, MessageTarget};
@@ -25,7 +25,7 @@ mod utils;
 
 /// Keygen and Signing always in Rust, outside zk circuits
 pub fn keygen_sign(message: &[u8]) -> (VerifyingKey<Poseidon256_256>, Signature) {
-    let mut seed = gen_random_seed::<Poseidon256_256>();
+    let seed = gen_random_seed::<Poseidon256_256>();
     let (mut signing_key, verifying_key) = keygen::<Poseidon256_256>(
         &[HssParameter::new(
             LmotsAlgorithm::LmotsW1,

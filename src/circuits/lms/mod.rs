@@ -361,7 +361,7 @@ fn generate_lms_public_key_candiate<F: RichField + Extendable<D>, const D: usize
 
 #[cfg(test)]
 mod test {
-    use crate::{circuits::{keygen_sign, utils::{hashout_to_u8, test_util::run_circuit_test}}, InMemoryHssPublicKey, InMemoryHssSignature, InMemoryLmsSignature};
+    use crate::{circuits::{keygen_sign, utils::test_util::{hashout_to_u8, run_circuit_test}}, InMemoryHssPublicKey, InMemoryHssSignature, InMemoryLmsSignature};
     use plonky2::{field::types::PrimeField64, iop::witness::WitnessWrite};
 
     use super::*;

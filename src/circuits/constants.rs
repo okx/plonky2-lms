@@ -1,4 +1,4 @@
-use plonky2::{field::goldilocks_field::GoldilocksField, plonk::config::{GenericConfig, PoseidonGoldilocksConfig}};
+use plonky2::{plonk::config::{GenericConfig, PoseidonGoldilocksConfig}};
 
 pub const LMS_TREE_HEIGHT: usize = 10;
 

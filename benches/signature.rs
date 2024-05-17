@@ -78,7 +78,7 @@ fn bench_zk_verify_poseidon256_256(c: &mut Criterion) {
     let (verifying_key, signature) = keygen_sign(&MESSAGE);
     group.bench_function("h10w1", |b| {
         b.iter(|| {
-            verify_in_zk_circuit(&MESSAGE, &verifying_key, &signature);
+            circuit_verify(&MESSAGE, &verifying_key, &signature);
         })
     });
     group.finish();
