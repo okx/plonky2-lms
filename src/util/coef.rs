@@ -37,7 +37,7 @@ mod tests {
         assert_eq!(coef(data, 15, 1), 1);
     }
 
-     #[test]
+    #[test]
     fn coef_test1() {
         let value = coef(&[0x12, 0x34], 7, 1);
         assert_eq!(value, 0);

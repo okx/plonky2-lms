@@ -63,7 +63,11 @@ pub const MAX_HSS_PUBLIC_KEY_LENGTH: usize = size_of::<u32>()       // HSS Level
         + lms_public_key_length(MAX_HASH_SIZE); // Root LMS PublicKey
 pub const MAX_HSS_SIGNED_PUBLIC_KEY_LENGTH: usize =
     hss_signed_public_key_length(MAX_HASH_SIZE, MAX_HASH_CHAIN_COUNT, MAX_TREE_HEIGHT);
-pub const MAX_HSS_SIGNATURE_LENGTH: usize = get_hss_signature_length(MAX_ALLOWED_HSS_LEVELS, &WINTERNITZ_PARAMETERS, &TREE_HEIGHTS);
+pub const MAX_HSS_SIGNATURE_LENGTH: usize = get_hss_signature_length(
+    MAX_ALLOWED_HSS_LEVELS,
+    &WINTERNITZ_PARAMETERS,
+    &TREE_HEIGHTS,
+);
 
 /// Calculated using the formula from RFC 8554 Appendix B
 /// https://datatracker.ietf.org/doc/html/rfc8554#appendix-B
@@ -121,7 +125,11 @@ pub const fn hss_signed_public_key_length(
         + MAX_LMS_PUBLIC_KEY_LENGTH // LMS PublicKey
 }
 
-pub const fn get_hss_signature_length(hss_level: usize, winternitz_parameters: &[usize], tree_heights: &[usize]) -> usize {
+pub const fn get_hss_signature_length(
+    hss_level: usize,
+    winternitz_parameters: &[usize],
+    tree_heights: &[usize],
+) -> usize {
     let mut length = size_of::<u32>();
 
     let mut level = hss_level - 1;

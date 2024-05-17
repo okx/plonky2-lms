@@ -1,7 +1,4 @@
-use core::{
-    convert::TryFrom,
-    fmt::Debug,
-};
+use core::{convert::TryFrom, fmt::Debug};
 use digest::{FixedOutput, Update};
 use tinyvec::ArrayVec;
 

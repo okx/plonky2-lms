@@ -1,6 +1,9 @@
 use super::constants::*;
 use plonky2::{
-    field::{extension::Extendable}, hash::hash_types::{HashOut, RichField}, iop::target::Target, plonk::circuit_builder::CircuitBuilder
+    field::extension::Extendable,
+    hash::hash_types::{HashOut, RichField},
+    iop::target::Target,
+    plonk::circuit_builder::CircuitBuilder,
 };
 
 pub fn u8_to_f<F: RichField + Extendable<D>, const D: usize>(data: &[u8]) -> Vec<F> {

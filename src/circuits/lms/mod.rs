@@ -1,6 +1,9 @@
 use core::convert::TryInto;
 
-use crate::{circuits::utils::u8_to_hashout_array, util::helper::read_and_advance, Poseidon256_256, Signature, VerifyingKey};
+use crate::{
+    circuits::utils::u8_to_hashout_array, util::helper::read_and_advance, Poseidon256_256,
+    Signature, VerifyingKey,
+};
 use itertools::Itertools;
 use plonky2::{
     field::extension::Extendable,
@@ -188,7 +191,7 @@ impl<F: RichField + Extendable<D>, const D: usize> LmsPublicKeyProvingInput<F, D
         let hss_level = u32::from_be_bytes(read_and_advance(data, 4, &mut idx).try_into().unwrap());
         assert_eq!(hss_level, 1);
         let lms_parameter = F::from_canonical_u32(u32::from_be_bytes(
-            read_and_advance(data, 4,  &mut idx).try_into().unwrap(),
+            read_and_advance(data, 4, &mut idx).try_into().unwrap(),
         ));
         let lmots_parameter = F::from_canonical_u32(u32::from_be_bytes(
             read_and_advance(data, 4, &mut idx).try_into().unwrap(),
@@ -262,7 +265,10 @@ impl LmsPublicKeyTarget {
     ) {
         pw.set_target(self.lms_parameter, proving_input.lms_parameter);
         pw.set_target(self.lmots_parameter, proving_input.lmots_parameter);
-        pw.set_target_arr(&self.lms_tree_identifier,&proving_input.lms_tree_identifier);
+        pw.set_target_arr(
+            &self.lms_tree_identifier,
+            &proving_input.lms_tree_identifier,
+        );
         pw.set_hash_target(self.key, proving_input.key);
     }
 }
@@ -361,7 +367,13 @@ fn generate_lms_public_key_candiate<F: RichField + Extendable<D>, const D: usize
 
 #[cfg(test)]
 mod test {
-    use crate::{circuits::{keygen_sign, utils::test_util::{hashout_to_u8, run_circuit_test}}, InMemoryHssPublicKey, InMemoryHssSignature, InMemoryLmsSignature};
+    use crate::{
+        circuits::{
+            keygen_sign,
+            utils::test_util::{hashout_to_u8, run_circuit_test},
+        },
+        InMemoryHssPublicKey, InMemoryHssSignature, InMemoryLmsSignature,
+    };
     use plonky2::{field::types::PrimeField64, iop::witness::WitnessWrite};
 
     use super::*;

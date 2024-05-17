@@ -1,13 +1,13 @@
 use std::time::Duration;
 
 use criterion::{criterion_group, criterion_main, Criterion};
+use hbs_lms::circuits::{circuit_verify, keygen_sign};
 use hbs_lms::signature::Verifier;
 use hbs_lms::{
     keygen, HashChain, HssParameter, LmotsAlgorithm, LmsAlgorithm, Poseidon256_256, Seed,
     Sha256_256,
 };
 use hbs_lms::{signature::SignerMut, SigningKey, VerifyingKey};
-use hbs_lms::circuits::{keygen_sign, circuit_verify};
 use rand::{rngs::OsRng, RngCore};
 
 const MESSAGE: [u8; 32] = [42u8; 32];

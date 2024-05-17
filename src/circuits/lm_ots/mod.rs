@@ -325,9 +325,12 @@ mod test {
     use std::u8;
 
     use super::*;
-    use crate::circuits::constants::{F, D};
+    use crate::circuits::constants::{D, F};
     use crate::circuits::keygen_sign;
-    use crate::circuits::lms::{LmsPublicKeyProvingInput, LmsPublicKeyTarget, LmsSignatureProvingInput, LmsSignatureTarget, MessageProvingInput};
+    use crate::circuits::lms::{
+        LmsPublicKeyProvingInput, LmsPublicKeyTarget, LmsSignatureProvingInput, LmsSignatureTarget,
+        MessageProvingInput,
+    };
     use crate::circuits::utils::test_util::run_circuit_test;
     use crate::circuits::utils::u8_to_f;
     use crate::{
@@ -607,8 +610,7 @@ mod test {
         run_circuit_test(|builder, pw| {
             // Inputs
             let message_hash_with_checksum = [0u8; 34];
-            let (hss_pubkey, hss_sig) =
-                keygen_sign(&message_hash_with_checksum[..32]);
+            let (hss_pubkey, hss_sig) = keygen_sign(&message_hash_with_checksum[..32]);
             let rust_result = {
                 let hss_pubkey =
                     InMemoryHssPublicKey::<Poseidon256_256>::new(&hss_pubkey.as_slice()).unwrap();

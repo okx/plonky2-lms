@@ -2,9 +2,7 @@ use crate::keygen;
 use crate::signature::SignerMut;
 use crate::util::helper::test_helper::gen_random_seed;
 
-use crate::{
-    HssParameter, LmotsAlgorithm, LmsAlgorithm, Poseidon256_256, Signature, VerifyingKey,
-};
+use crate::{HssParameter, LmotsAlgorithm, LmsAlgorithm, Poseidon256_256, Signature, VerifyingKey};
 use plonky2::field::extension::Extendable;
 
 use plonky2::hash::hash_types::RichField;
@@ -12,11 +10,11 @@ use plonky2::iop::witness::PartialWitness;
 use plonky2::plonk::circuit_builder::CircuitBuilder;
 use plonky2::plonk::circuit_data::CircuitConfig;
 
-
-
-
-use self::constants::{F, D};
-use self::lms::{build_lms_verify_circuit, LmsPublicKeyProvingInput, LmsPublicKeyTarget, LmsSignatureProvingInput, LmsSignatureTarget, MessageProvingInput, MessageTarget};
+use self::constants::{D, F};
+use self::lms::{
+    build_lms_verify_circuit, LmsPublicKeyProvingInput, LmsPublicKeyTarget,
+    LmsSignatureProvingInput, LmsSignatureTarget, MessageProvingInput, MessageTarget,
+};
 
 mod constants;
 mod lm_ots;
@@ -79,12 +77,7 @@ impl VerifyTargets {
         let message = MessageTarget::new(builder);
         let lms_signature = LmsSignatureTarget::new(builder);
         let lms_pubkey = LmsPublicKeyTarget::new(builder);
-        build_lms_verify_circuit(
-            builder,
-            &lms_signature,
-            &lms_pubkey,
-            &message,
-        );
+        build_lms_verify_circuit(builder, &lms_signature, &lms_pubkey, &message);
 
         VerifyTargets {
             message,
@@ -125,7 +118,7 @@ mod tests {
         let (hss_pubkey, hss_sig) = keygen_sign(&MESSAGE);
         circuit_verify(&MESSAGE, &hss_pubkey, &hss_sig)
     }
-    
+
     #[test]
     fn test_rust_verify() {
         let (verifying_key, signature) = keygen_sign(&MESSAGE);
