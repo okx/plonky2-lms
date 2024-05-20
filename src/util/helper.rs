@@ -12,7 +12,6 @@ pub fn read_and_advance<'a>(src: &'a [u8], length: usize, index: &mut usize) -> 
     result
 }
 
-#[cfg(test)]
 pub mod test_helper {
     use crate::{HashChain, Seed};
     use rand::{rngs::OsRng, RngCore};

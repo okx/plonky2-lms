@@ -32,7 +32,6 @@ impl Debug for LmotsAlgorithm {
             LmotsAlgorithm::LmotsW8 => write!(f, "W8"),
         }
     }
-
 }
 impl Default for LmotsAlgorithm {
     fn default() -> Self {

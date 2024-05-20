@@ -2,21 +2,22 @@
 name = "hbs-lms"
 version = "0.1.1"
 rust-version = "1.57"
-authors = ["Fraunhofer AISEC"]
+authors = ["Fraunhofer AISEC", "Yongjin Huang"]
 description = """
-Pure Rust implementation of the Leighton Micali Signature scheme with support for key generation, signature generation and verification.
+Pure Rust implementation of the Leighton Micali Signature scheme with support for key generation, signature generation and verification, 
+including signature verification Plonky2 circuit. 
 """
-edition = "2018"
-repository = "https://github.com/Fraunhofer-AISEC/hbs-lms-rust"
+edition = "2021"
+repository = "https://github.com/okx/plonky2-lms"
 license = "Apache-2.0"
 readme = "README.md"
-keywords = ["crypto", "post-quantum", "signature", "lms"]
-categories = ["cryptography", "no-std"]
+keywords = ["crypto", "post-quantum", "signature", "lms", "plonky2"]
+categories = ["cryptography"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-plonky2 = { git = "https://github.com/polymerdao/plonky2", rev = "4cb0b48df1d227d5461a4c28ed025aaea64e2e62" }
+plonky2 = { version = "0.2.0" }
 tinyvec = { version = "1.5.1", features = ["rustc_1_55"] }
 subtle = { version = "2.4.1", default-features = false }
 zeroize = { version = "1.5.1", default-features = false, features = [
@@ -27,17 +28,31 @@ digest = { version = "0.10.2", default-features = false }
 sha2 = { version = "0.10.0", default-features = false }
 sha3 = { version = "0.10.0", default-features = false }
 crossbeam = { version = "0.8", optional = true }
-rand = { version = "0.8.3", optional = true }
+rand = { version = "0.8.3" }
+itertools = { version = "0.11.0", default-features = false }
 
 
 [dev-dependencies]
 clap = "3.0.0"
 tempfile = "3.2.0"
 hex = "0.4.3"
-rand = "0.8.3"
+criterion = "0.4.0"
 
 [features]
-default = []
+default = ["std"]
 std = []
-fast_verify = ["std", "rand", "crossbeam"]
+fast_verify = ["std", "crossbeam"]
 verbose = []
+
+[profile.release]
+opt-level = 3
+
+[profile.bench]
+opt-level = 3
+
+[profile.test]
+opt-level = 3
+
+[[bench]]
+name = "signature"
+harness = false

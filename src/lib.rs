@@ -84,6 +84,7 @@
 
 extern crate core;
 
+pub mod circuits;
 pub mod constants;
 pub mod hasher;
 mod hss;

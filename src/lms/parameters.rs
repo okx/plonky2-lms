@@ -1,8 +1,8 @@
 use core::marker::PhantomData;
 
 use crate::hasher::{sha256::Sha256_256, HashChain};
-use core::fmt::Debug;
 use core::fmt;
+use core::fmt::Debug;
 
 /// Specifies the used Tree height.
 #[derive(Clone, Copy)]

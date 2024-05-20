@@ -1,37 +1,129 @@
-# Leighton-Micali Hash-Based Signatures
+# LMS Hash-based Signature in Plonky2
+LMS Signature Verification in Plonky2.
 
-[![crate][crate-image]][crate-link]
-[![Docs][docs-image]][docs-link]
-![Apache2/MIT licensed][license-image]
-![Rust Version][rustc-image]
-[![Build Status][build-image]][build-link]
+Fork from: https://github.com/Fraunhofer-AISEC/hbs-lms-rust
 
-LMS implementation in Rust according to the [IETF RFC 8554](https://datatracker.ietf.org/doc/html/rfc8554).
-This implementation is binary compatible with the reference implementation found here: [hash-sigs](https://github.com/cisco/hash-sigs).
+Compared to ECDSA, LMS:
+- ✅ Verification in Plonky2 is fast
+- ✅ Quantum-resistant
+- ❌ Stateful, need to keep track of the used key pairs.
+- ❌ Key generation and signing are slow.
+- ❌ Signature size is large
 
-This crate does not require the standard library (i.e. no_std capable) and can be easily used for bare-metal programming.
+## Limitations
+DISCLAIMER: This is an unaudited prototype. DO NOT USE THIS IN PRODUCTION.
+- Only support fixed LMS and LM-OTS parameters.
+- Not support HSS (multi-tree variant of LMS).
+- Not compatible with the reference implementation found here: [hash-sigs](https://github.com/cisco/hash-sigs).
 
-## Demo
-A demo application is located in the `examples` folder to demonstrate the use of the library.
-This demo application can be used in the console as follows:
+## Benchmark
+- Key generation, signing, and verification using SHA-256 and Poseidon in native Rust.
+- Verification using Poseidon in Plonky2.
 
+`cargo bench`
+
+Result on MacBook M1Pro:
 ```
-# Key generation
-# Generates `mykey.priv`, `mykey.pub` with merkle tree height 10 and winternitz parameter 2
-cargo run --release --example lms-demo -- genkey mykey 10/2 --seed 0123456701234567012345670123456701234567012345670123456701234567
+test tests::hasher_poseidon256_256    ... bench:       4,118 ns/iter (+/- 191)
+test tests::hasher_sha256_256         ... bench:         750 ns/iter (+/- 18)
+test tests::keygen_h5w2               ... bench:   6,249,095 ns/iter (+/- 274,502)
+test tests::keygen_h5w2_h5w2          ... bench:   6,251,766 ns/iter (+/- 303,264)
+test tests::keygen_with_aux_h5w2      ... bench:   6,260,225 ns/iter (+/- 130,199)
+test tests::keygen_with_aux_h5w2_h5w2 ... bench:   6,254,754 ns/iter (+/- 132,943)
+test tests::sign_h5w2                 ... bench:   6,195,979 ns/iter (+/- 99,432)
+test tests::sign_h5w2_h5w2            ... bench:  18,625,629 ns/iter (+/- 416,090)
+test tests::sign_with_aux_h10w2       ... bench:     275,868 ns/iter (+/- 29,399)
+test tests::sign_with_aux_h15w2       ... bench:   3,336,850 ns/iter (+/- 33,665)
+test tests::sign_with_aux_h5w2        ... bench:     157,445 ns/iter (+/- 2,248)
+test tests::sign_with_aux_h5w2_h5w2   ... bench:  12,581,987 ns/iter (+/- 277,378)
+test tests::verify                    ... bench:      95,502 ns/iter (+/- 1,650)
+test tests::verify_reference          ... bench:     106,256 ns/iter (+/- 1,586)
 
-# Signing
-# Generates `message.txt.sig`
-cargo run --release --example lms-demo -- sign mykey message.txt
+test result: ok. 0 passed; 0 failed; 0 ignored; 14 measured; 0 filtered out; finished in 28.13s
 
-# Signing (fast_verification)
-# Generates `message.txt_mut`, `message.txt_mut.sig`
-HBS_LMS_MAX_HASH_OPTIMIZATIONS=1000 HBS_LMS_THREADS=2 cargo run --release --example lms-demo \
-    --features fast_verify -- sign_mut mykey message.txt
+     Running benches/signature.rs (target/release/deps/signature-10699a4b6742a2d5)
+keygen_Sha256_256/H10W1 time:   [187.62 ms 188.11 ms 188.66 ms]
+keygen_Sha256_256/H10W2 time:   [201.68 ms 202.44 ms 203.27 ms]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high mild
+keygen_Sha256_256/H10W4 time:   [420.81 ms 421.75 ms 422.79 ms]
+Benchmarking keygen_Sha256_256/H10W8: Warming up for 3.0000 s
+Warning: Unable to complete 10 samples in 5.0s. You may wish to increase target time to 34.7s.
+keygen_Sha256_256/H10W8 time:   [3.4556 s 3.4613 s 3.4685 s]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high severe
 
-# Verification
-# Verifies `message.txt` with `message.txt.sig` against `mykey.pub`
-cargo run --release --example lms-demo -- verify mykey message.txt
+Benchmarking keygen_Poseidon256_256/H10W1: Warming up for 3.0000 s
+Warning: Unable to complete 10 samples in 5.0s. You may wish to increase target time to 15.2s.
+keygen_Poseidon256_256/H10W1
+                        time:   [1.5115 s 1.5170 s 1.5225 s]
+Benchmarking keygen_Poseidon256_256/H10W2: Warming up for 3.0000 s
+Warning: Unable to complete 10 samples in 5.0s. You may wish to increase target time to 14.3s.
+keygen_Poseidon256_256/H10W2
+                        time:   [1.4346 s 1.4404 s 1.4462 s]
+Benchmarking keygen_Poseidon256_256/H10W4: Warming up for 3.0000 s
+Warning: Unable to complete 10 samples in 5.0s. You may wish to increase target time to 27.7s.
+keygen_Poseidon256_256/H10W4
+                        time:   [2.7472 s 2.7534 s 2.7617 s]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high severe
+Benchmarking keygen_Poseidon256_256/H10W8: Warming up for 3.0000 s
+Warning: Unable to complete 10 samples in 5.0s. You may wish to increase target time to 219.7s.
+keygen_Poseidon256_256/H10W8
+                        time:   [22.133 s 22.177 s 22.227 s]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high mild
+
+sign_Sha256_256/H10W1   time:   [188.06 ms 189.70 ms 192.31 ms]
+Found 2 outliers among 10 measurements (20.00%)
+  2 (20.00%) high severe
+sign_Sha256_256/H10W2   time:   [202.40 ms 204.06 ms 206.70 ms]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high severe
+sign_Sha256_256/H10W4   time:   [420.97 ms 425.16 ms 432.24 ms]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high severe
+Benchmarking sign_Sha256_256/H10W8: Warming up for 3.0000 s
+Warning: Unable to complete 10 samples in 5.0s. You may wish to increase target time to 34.4s.
+sign_Sha256_256/H10W8   time:   [3.4566 s 3.4687 s 3.4807 s]
+
+Benchmarking sign_Poseidon256_256/H10W1: Warming up for 3.0000 s
+Warning: Unable to complete 10 samples in 5.0s. You may wish to increase target time to 15.3s.
+sign_Poseidon256_256/H10W1
+                        time:   [1.5095 s 1.5145 s 1.5197 s]
+Benchmarking sign_Poseidon256_256/H10W2: Warming up for 3.0000 s
+Warning: Unable to complete 10 samples in 5.0s. You may wish to increase target time to 14.5s.
+sign_Poseidon256_256/H10W2
+                        time:   [1.4475 s 1.4582 s 1.4691 s]
+Benchmarking sign_Poseidon256_256/H10W4: Warming up for 3.0000 s
+Warning: Unable to complete 10 samples in 5.0s. You may wish to increase target time to 27.8s.
+sign_Poseidon256_256/H10W4
+                        time:   [2.7333 s 2.7406 s 2.7494 s]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high mild
+Benchmarking sign_Poseidon256_256/H10W8: Warming up for 3.0000 s
+Warning: Unable to complete 10 samples in 5.0s. You may wish to increase target time to 220.2s.
+sign_Poseidon256_256/H10W8
+                        time:   [22.040 s 22.151 s 22.272 s]
+Found 1 outliers among 10 measurements (10.00%)
+  1 (10.00%) high mild
+
+verify_Sha256_256/H10W1 time:   [96.179 µs 97.614 µs 99.252 µs]
+verify_Sha256_256/H10W2 time:   [102.80 µs 105.43 µs 107.50 µs]
+verify_Sha256_256/H10W4 time:   [198.24 µs 204.42 µs 212.72 µs]
+verify_Sha256_256/H10W8 time:   [1.6346 ms 1.7087 ms 1.7838 ms]
+
+verify_Poseidon256_256/H10W1
+                        time:   [505.89 µs 524.66 µs 536.00 µs]
+verify_Poseidon256_256/H10W2
+                        time:   [598.88 µs 620.68 µs 639.02 µs]
+verify_Poseidon256_256/H10W4
+                        time:   [1.2799 ms 1.3584 ms 1.4488 ms]
+verify_Poseidon256_256/H10W8
+                        time:   [10.020 ms 10.801 ms 11.930 ms]
+
+zk_verify_poseidon256_256/h10w1
+                        time:   [179.69 ms 183.72 ms 188.14 ms]
 ```
 
 ## Naming conventions wrt to the IETF RFC
@@ -51,24 +143,8 @@ The following table shows the mapping between the RFC and the library naming inc
 | n          | hash_function_output_size | Number of bytes that the lm_ots hash functions generates         |
 | m          | hash_function_output_size | Number of bytes that the lms hash functions generates         |
 
-## Minimum Supported Rust Version
-The crate in this repository supports Rust **1.57** or higher.
-
-Minimum supported Rust version can be changed in the future, but it will be done with a minor version bump.
-
 ## Licensing
 This work is licensed under terms of the Apache-2.0 license (see [LICENSE file](LICENSE)).
 
 ### Contribution
 Any contribution intentionally submitted for inclusion in the work by you, as defined in the Apache-2.0 license, shall be licensed as above, without any additional terms or conditions.
-
-[//]: # (badges)
-
-[crate-image]: https://img.shields.io/crates/v/hbs-lms.svg
-[crate-link]: https://crates.io/crates/hbs-lms
-[docs-image]: https://docs.rs/hbs-lms/badge.svg
-[docs-link]: https://docs.rs/hbs-lms/
-[license-image]: https://img.shields.io/badge/license-Apache2.0-blue.svg
-[rustc-image]: https://img.shields.io/badge/rustc-1.57+-blue.svg
-[build-image]: https://github.com/Fraunhofer-AISEC/hbs-lms-rust/workflows/lms/badge.svg?branch=master
-[build-link]: https://github.com/Fraunhofer-AISEC/hbs-lms-rust/actions?query=workflow%3Alms
