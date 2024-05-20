@@ -1,13 +1,20 @@
 use std::time::Duration;
 
 use criterion::{criterion_group, criterion_main, Criterion};
-use hbs_lms::circuits::{circuit_verify, keygen_sign};
+use hbs_lms::circuits::{
+    circuit_verify,
+    constants::{C, D, F},
+    keygen_sign,
+};
 use hbs_lms::signature::Verifier;
 use hbs_lms::{
     keygen, HashChain, HssParameter, LmotsAlgorithm, LmsAlgorithm, Poseidon256_256, Seed,
     Sha256_256,
 };
 use hbs_lms::{signature::SignerMut, SigningKey, VerifyingKey};
+use plonky2::iop::witness::PartialWitness;
+use plonky2::plonk::circuit_builder::CircuitBuilder;
+use plonky2::plonk::circuit_data::CircuitConfig;
 use rand::{rngs::OsRng, RngCore};
 
 const MESSAGE: [u8; 32] = [42u8; 32];
@@ -78,7 +85,12 @@ fn bench_zk_verify_poseidon256_256(c: &mut Criterion) {
     let (verifying_key, signature) = keygen_sign(&MESSAGE);
     group.bench_function("h10w1", |b| {
         b.iter(|| {
-            circuit_verify(&MESSAGE, &verifying_key, &signature);
+            let config = CircuitConfig::standard_recursion_config();
+            let mut builder: CircuitBuilder<F, D> = CircuitBuilder::new(config);
+            let mut pw: PartialWitness<F> = PartialWitness::<F>::new();
+            circuit_verify(&mut builder, &mut pw, &MESSAGE, &verifying_key, &signature);
+            let data = builder.build::<C>();
+            let _proof = data.prove(pw).expect("Prove fail");
         })
     });
     group.finish();

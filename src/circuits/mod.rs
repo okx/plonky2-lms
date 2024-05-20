@@ -8,7 +8,6 @@ use plonky2::field::extension::Extendable;
 use plonky2::hash::hash_types::RichField;
 use plonky2::iop::witness::PartialWitness;
 use plonky2::plonk::circuit_builder::CircuitBuilder;
-use plonky2::plonk::circuit_data::CircuitConfig;
 
 use self::constants::{D, F};
 use self::lms::{
@@ -16,7 +15,7 @@ use self::lms::{
     LmsSignatureProvingInput, LmsSignatureTarget, MessageProvingInput, MessageTarget,
 };
 
-mod constants;
+pub mod constants;
 mod lm_ots;
 mod lms;
 mod utils;
@@ -41,6 +40,8 @@ pub fn keygen_sign(message: &[u8]) -> (VerifyingKey<Poseidon256_256>, Signature)
 
 /// Verify HSS signature in plonky2 circuit
 pub fn circuit_verify(
+    builder: &mut CircuitBuilder<F, D>,
+    pw: &mut PartialWitness<F>,
     message: &[u8; 32],
     hss_pubkey: &VerifyingKey<Poseidon256_256>,
     hss_sig: &Signature,
@@ -55,11 +56,8 @@ pub fn circuit_verify(
         lms_signature,
         lms_pubkey,
     };
-    let config = CircuitConfig::standard_recursion_config();
-    let mut builder = CircuitBuilder::<F, D>::new(config);
-    let targets = VerifyTargets::new::<F, D>(&mut builder);
-    let mut pw = PartialWitness::new();
-    targets.set_proving_inputs(&mut pw, &inputs);
+    let targets = VerifyTargets::new::<F, D>(builder);
+    targets.set_proving_inputs(pw, &inputs);
 }
 
 #[derive(Debug)]
@@ -109,6 +107,8 @@ pub struct VerifyProvingInputs<F: RichField + Extendable<D>, const D: usize> {
 mod tests {
     use signature::Verifier;
 
+    use self::utils::test_util::run_circuit_test;
+
     use super::*;
 
     const MESSAGE: [u8; 32] = [42u8; 32];
@@ -116,7 +116,9 @@ mod tests {
     #[test]
     fn test_circuit_verify() {
         let (hss_pubkey, hss_sig) = keygen_sign(&MESSAGE);
-        circuit_verify(&MESSAGE, &hss_pubkey, &hss_sig)
+        run_circuit_test(|builder, pw| {
+            circuit_verify(builder, pw, &MESSAGE, &hss_pubkey, &hss_sig);
+        })
     }
 
     #[test]

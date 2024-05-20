@@ -109,31 +109,21 @@ Found 1 outliers among 10 measurements (10.00%)
   1 (10.00%) high mild
 
 verify_Sha256_256/H10W1 time:   [96.179 µs 97.614 µs 99.252 µs]
-                        change: [-5.2428% -2.5941% +0.5731%] (p = 0.12 > 0.05)
 verify_Sha256_256/H10W2 time:   [102.80 µs 105.43 µs 107.50 µs]
-                        change: [-5.6310% -0.1169% +5.4023%] (p = 0.97 > 0.05)
 verify_Sha256_256/H10W4 time:   [198.24 µs 204.42 µs 212.72 µs]
-                        change: [-10.803% -5.8981% -0.3829%] (p = 0.05 > 0.05)
 verify_Sha256_256/H10W8 time:   [1.6346 ms 1.7087 ms 1.7838 ms]
-                        change: [-7.9895% -2.1632% +4.7699%] (p = 0.54 > 0.05)
 
 verify_Poseidon256_256/H10W1
                         time:   [505.89 µs 524.66 µs 536.00 µs]
-                        change: [-5.6571% -1.7633% +2.2621%] (p = 0.42 > 0.05)
 verify_Poseidon256_256/H10W2
                         time:   [598.88 µs 620.68 µs 639.02 µs]
-                        change: [-1.9654% +1.7030% +5.6344%] (p = 0.41 > 0.05)
 verify_Poseidon256_256/H10W4
                         time:   [1.2799 ms 1.3584 ms 1.4488 ms]
-                        change: [-3.1236% +3.5329% +10.752%] (p = 0.34 > 0.05)
 verify_Poseidon256_256/H10W8
                         time:   [10.020 ms 10.801 ms 11.930 ms]
-                        change: [-18.106% -6.5139% +5.2225%] (p = 0.38 > 0.05)
 
 zk_verify_poseidon256_256/h10w1
-                        time:   [12.742 ms 12.798 ms 12.867 ms]
-                        change: [+1.1032% +1.9760% +2.7198%] (p = 0.00 < 0.05)
-                        Performance has regressed.
+                        time:   [179.69 ms 183.72 ms 188.14 ms]
 ```
 
 ## Naming conventions wrt to the IETF RFC

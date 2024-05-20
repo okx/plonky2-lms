@@ -44,6 +44,15 @@ std = []
 fast_verify = ["std", "crossbeam"]
 verbose = []
 
+[profile.release]
+opt-level = 3
+
+[profile.bench]
+opt-level = 3
+
+[profile.test]
+opt-level = 3
+
 [[bench]]
 name = "signature"
 harness = false
