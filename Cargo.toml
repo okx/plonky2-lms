@@ -8,10 +8,10 @@ Pure Rust implementation of the Leighton Micali Signature scheme with support fo
 including signature verification Plonky2 circuit. 
 """
 edition = "2021"
-repository = "https://github.com/okx/hbs-lms-rust"
+repository = "https://github.com/okx/plonky2-lms"
 license = "Apache-2.0"
 readme = "README.md"
-keywords = ["crypto", "post-quantum", "signature", "lms"]
+keywords = ["crypto", "post-quantum", "signature", "lms", "plonky2"]
 categories = ["cryptography"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
